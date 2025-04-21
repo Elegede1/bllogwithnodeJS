@@ -1,7 +1,7 @@
 const express = require('express')
 const morgan = require('morgan');
 const mongoose = require('mongoose');
-const Blog = require('./models/blog'); // import the blog model. This will be used to interact with the database.
+const blogRoutes = require('./routes/blogRoutes'); // import the blog routes. This will be used to define the routes for the blog section of the website.
 
 // express app
 const app = express();
@@ -85,67 +85,8 @@ app.get('/', (req, res) => {
     res.redirect('/blogs'); // redirect to the blogs page
 });
 
-
-app.get('/blogs', (req, res) => {
-    // res.send('<p>All blogs</p>');
-    // res.sendFile('./views/blogs.html', { root: __dirname });
-    Blog.find().sort({ createdAt: -1 }) // find all blogs and sort them by createdAt field in descending order. Which means fetch from the newest to the oldest
-        .then((result) => {
-            res.render('index', { title: 'All blogs', blogs: result }); // render the blogs.ejs file and pass the title and blogs variables to it.
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-});
-
-
-app.post('/blogs', (req, res) => {
-    // res.send('<p>Create blog</p>');
-    // res.sendFile('./views/create.html', { root: __dirname });
-    const blog = new Blog(req.body); // create a new blog object and pass the request body to it.
-    // the code below is the same as the one above but using destructuring to get the values from the request body
-    // const blog = new Blog({
-    //     title: req.body.title,
-    //     snippet: req.body.snippet,
-    //     body: req.body.body
-    // });
-    blog.save()
-        .then((result) => {
-            res.redirect('/blogs');
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-});
-
-
-app.get('/blogs/create', (req, res) => {
-    res.render('create', { title: 'Create a new blog' });
-});
-
-
-app.get('/blogs/:id', (req, res) => {
-    const id = req.params.id; // get the id from the request parameters. The :id part of the URL is a placeholder for the actual id value.
-    Blog.findById(id)
-        .then((result) => {
-            res.render('details', { title: 'Blog details', blog: result });
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-});
-
-
-app.delete('/blogs/:id', (req, res) => {
-    const id = req.params.id; // get the id from the request parameters. The :id part of the URL is a placeholder for the actual id value.
-    Blog.findByIdAndDelete(id) // find the blog by id and delete it
-        .then((result) => {
-            res.json({ redirect: '/blogs' }); // send a JSON response with a redirect URL. This will be used to redirect the user to the blogs page after deleting the blog.
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-});
+// blog routes
+app.use('/blogs', blogRoutes); // use the blog routes. This will mount the blogRoutes module to the /blogs path. This means that all routes defined in the blogRoutes module will be prefixed with /blogs.
 
 
 // 404 page

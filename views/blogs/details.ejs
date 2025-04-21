@@ -1,18 +1,21 @@
 <html lang="en">
-<%- include("./partials/head.ejs") %>
+<%- include("../partials/head.ejs") %>
 
 <body>
-  <%- include("./partials/nav.ejs") %>
+  <%- include("../partials/nav.ejs") %>
 
   <div class="details content">
     <h2><%= blog.title %></h2>
+    <h3><%= blog.snippet %></h3>
     <div class="content">
       <p><%= blog.body %></p>
     </div>
-    <a class="delete" data-doc="<%= blog._id %>">Delete</a>
+    <a class="delete" data-doc="<%= blog._id %>">
+      <img src="/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" alt="Delete">
+    </a>
   </div>
 
-  <%- include("./partials/footer.ejs") %>
+  <%- include("../partials/footer.ejs") %>
 
   <script>
     const trashcan = document.querySelector('a.delete');
@@ -20,7 +23,7 @@
     trashcan.addEventListener('click', (e) => {
       const endpoint = `/blogs/${trashcan.dataset.doc}`;
 
-      fetch(endpoint, {
+      fetch(endpoint, { 
         method: 'DELETE',
       })
       .then(response => response.json())
