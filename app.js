@@ -2,9 +2,17 @@ const express = require('express')
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const blogRoutes = require('./routes/blogRoutes'); // import the blog routes. This will be used to define the routes for the blog section of the website.
+const session = require('express-session');
+const passport = require('passport');
+const flash = require('connect-flash');
+const path = require('path');
+
 
 // express app
 const app = express();
+
+// Passport config
+require('./config/passport')(passport); // import the passport config. This will be used to configure passport for authentication.
 
 // connect to mongodb
 const dbURI = 'mongodb+srv://elegedeblog:XahAv01JiyrGKdOL@plentytinz.thbcvqi.mongodb.net/?retryWrites=true&w=majority&appName=plentytinz'
@@ -24,8 +32,12 @@ app.set('view engine', 'ejs');
 app.set('views', 'views'); // set the views directory. This is where we will put our EJS files. the syntax is app.set('views', 'directory_name')
 app.use(express.static('public')); // serve static files from the public directory. This is where we will put our CSS and JS files.
 
+
 // register view engine
 app.set('view engine', 'ejs');
+
+// Body parser
+app.use(express.urlencoded({ extended: false }));
 
 
 // middleware & static files
@@ -33,39 +45,44 @@ app.use(express.static('public/css/')); // serve static files from the public di
 app.use(express.urlencoded({ extended: true })); // parse URL-encoded bodies (as sent by HTML forms). This will allow us to access the form data in the request body.
 app.use(morgan('dev')); // use morgan middleware to log requests to the console. The 'dev' option will log the request method, url, status code, and response time.
 
-// app.use((req, res, next) => {
-//     console.log('new request made:');
-//     console.log('host: ', req.hostname);
-//     console.log('path: ', req.path);
-//     console.log('method: ', req.method);
-//     next();
-//   });
 
-// app.use((req, res, next) => {
-//   console.log('in the next middleware');
-//   next();
-// });
+// Express session
+app.use(session({
+    secret: 'your_secret_key',
+    resave: true,
+    saveUninitialized: true
+  }));
+  
+  // Passport middleware
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
+  // Connect flash
+  app.use(flash());
+  
+  // Global variables
+  app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    res.locals.error = req.flash('error');
+    res.locals.user = req.user || null;
+    next();
+  });
+  
+  // Static files
+  app.use('/public', express.static(path.join(__dirname, 'public'))); // serve static files from the assets directory. This is where we will put our CSS and JS files.
+  app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
-// routes
-// app.get('/', (req, res) => {
-//     const blogs = [
-//         {title: 'Yoshi finds eggs', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-//         {title: 'Mario finds stars', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-//         {title: 'How to defeat bowser', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-//       ];
-//     // res.send('<p>Home Page</p>'); // send a response to the client. This will send a string as a response.
-//     // res.sendFile('./views/index.html', { root: __dirname }); // send the index.html file as a response. The __dirname variable is a global variable that contains the path to the current directory.
-//     res.render('index', { title: 'Home', blogs }); // render the index.ejs file and pass the title variable to it. The title variable will be used in the EJS file to set the title of the page.
-// });
+  
+  // Routes
+  app.use('/auth', require('./routes/auth'));
+  app.use('/profile', require('./routes/profile'));
+
 
 app.get('/about', (req, res) => {
     // res.send('<p>About Page</p>');
     // res.sendFile('./views/about.html', { root: __dirname });
     res.render('about', { title: 'About' });
-});
-
-app.get('/about-me', (req, res) => {
-    res.redirect('/about');
 });
 
 app.get('/contact', (req, res) => {
@@ -74,16 +91,50 @@ app.get('/contact', (req, res) => {
     res.render('contact', { title: 'Contact' });
 });
 
-app.get('/contact-us', (req, res) => {
-    res.redirect('/contact');
-});
-
-
 
 // these are the routes for the blog app
 app.get('/', (req, res) => {
     res.redirect('/blogs'); // redirect to the blogs page
 });
+
+// Create admin user script
+app.get('/setup-admin', async (req, res) => { // create an admin user route. This will be used to create an admin user for the application.
+    try {
+      const User = require('./models/User');
+      const adminExists = await User.findOne({ username: 'admin' });
+      
+      if (adminExists) {
+        return res.send('Admin already exists');
+      }
+      
+      const admin = new User({
+        username: 'admin',
+        password: 'admin123', // Will be hashed by the pre-save hook
+        isAdmin: true,
+        profile: {
+          name: 'Administrator',
+          age: 30,
+          job: 'System Administrator',
+          hobbies: ['Coding', 'System Management', 'Security']
+        }
+      });
+      
+      await admin.save();
+      res.send('Admin user created successfully');
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Error creating admin user');
+    }
+  });
+
+  // Admin dashboard route
+  app.get('/admin', (req, res) => {
+    if (!req.user || !req.user.isAdmin) {
+      req.flash('error_msg', 'You are not authorized to view this page');
+      return res.redirect('/');
+    }
+    res.render('admin-dashboard');
+  });
 
 // blog routes
 app.use('/blogs', blogRoutes); // use the blog routes. This will mount the blogRoutes module to the /blogs path. This means that all routes defined in the blogRoutes module will be prefixed with /blogs.

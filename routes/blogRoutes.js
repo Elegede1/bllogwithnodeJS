@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router(); // create a new router object. This will be used to define the routes for the blog section of the website.
 const blogController = require('../controllers/blogController'); // import the blog controller. This will be used to define the routes for the blog section of the website.
 
+
+// blog routes
 router.get('/', blogController.blog_index); // define the route for the index page. This will be used to display all blogs. The blogController.blog_index function will be called when this route is accessed.
 
 

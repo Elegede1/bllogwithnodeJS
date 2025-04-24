@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/style.css">
+    <title>Edit Profile</title>
+</head>
+<body>
+    <%- include ('partials/nav.ejs') %>
+    <div class="container">
+        <h1>Edit Profile</h1>
+        <% if(error_msg !== '') { %>
+            <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        <form action="/profile/edit" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" class="form-control" value="<%= profile.name %>" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" value="<%= user.email %>" required>
+            </div>
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" class="form-control" value="<%= profile.age %>" min="1" max="120" required>
+            </div>
+            <div class="form-group">
+                <label for="job">Job</label>
+                <input type="text" id="job" name="job" class="form-control" value="<%= profile.job %>">
+            </div>
+            <div class="form-group">
+                <label for="hobbies">Hobbies (comma separated)</label>
+                <input type="text" id="hobbies" name="hobbies" class="form-control" value="<%= profile.hobbies.join(', ') %>">
+            </div>
+            <div class="form-group">
+                <label>Current Profile Picture</label>
+                <div class="current-profile-pic">
+                    <img src="<%= profile.profilePicture %>" alt="Current profile picture" style="max-width: 150px;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="profilePicture">Update Profile Picture</label>
+                <input type="file" id="profilePicture" name="profilePicture" class="form-control" accept="image/*">
+                <small class="form-text text-muted">Leave empty to keep current picture. Max size: 5MB</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </form>
+        <a href="/profile" class="btn btn-secondary">Back to Profile</a>
+    </div>
+</body>
+</html>

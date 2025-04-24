@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/style.css">
+    <title>Login</title>
+</head>
+<body>
+    <%- include ('partials/nav.ejs') %>
+    <div class="container">
+        <h1>Login</h1>
+        <% if(typeof error !== 'undefined') { %>
+            <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+        <% if(success_msg !== '') { %>
+            <div class="alert alert-success"><%= success_msg %></div>
+        <% } %>
+        <% if(error_msg !== '') { %>
+            <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        <form action="/auth/login" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        <p>No account? <a href="/auth/register">Register</a></p>
+    </div>
+</body>
+</html>

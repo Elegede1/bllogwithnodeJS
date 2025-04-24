@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/style.css">
+    <title><%= person %>'s Profile</title>
+</head>
+<body>
+    <%- include ('partials/nav.ejs') %>
+    
+    <div class="container">
+        <h1>Welcome to the profile of <%= person %></h1>
+        
+        <% if(success_msg !== '') { %>
+            <div class="alert alert-success"><%= success_msg %></div>
+        <% } %>
+        
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-image-container">
+                    <img src="<%= data.profilePicture %>" alt="<%= person %>'s profile picture" class="profile-image" >
+                </div>
+                <div class="profile-title">
+                    <h2><%= person %></h2>
+                    <% if(user && user.email) { %>
+                        <p class="profile-email"><%= user.email %></p>
+                    <% } %>
+                </div>
+                <% if(user && (user.profile.name === person || user.isAdmin)) { %>
+                    <a href="/profile/edit" class="btn btn-primary">Edit Profile</a>
+                <% } %>
+            </div>
+            
+            <div class="profile-details">
+                <p><strong>Age:</strong> <%= data.age %></p>
+                <p><strong>Job:</strong> <%= data.job %></p>
+                
+                <h2>Hobbies:</h2> 
+                <ul class="hobbies-list">
+                    <% data.hobbies.forEach(function(hobby) { %>
+                        <li><%= hobby %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        </div>
+        
+        <% if(user && user.isAdmin) { %>
+            <div class="admin-panel">
+                <h3>Admin Options</h3>
+                <a href="/profile/admin" class="btn btn-warning">Admin Dashboard</a>
+            </div>
+        <% } %>
+    </div>
+    
+    <%- include ('partials/footer.ejs') %>
+    <!-- <script src="/assets/app.js"></script> -->
+</body>
+</html>
