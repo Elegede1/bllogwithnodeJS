@@ -230,7 +230,7 @@ router.post('/admin/edit/:id', ensureAuthenticated, upload.single('profilePictur
 });
 
 // Admin delete user
-router.post('/admin/delete/:id', ensureAuthenticated, async (req, res) => {
+router.post('/admin/delete/:id', ensureAuthenticated, async (req, res) => { // delete user route
   if (!req.user.isAdmin) {
     req.flash('error_msg', 'Access denied');
     return res.redirect('/profile');

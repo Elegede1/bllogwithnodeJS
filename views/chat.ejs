@@ -1,0 +1,32 @@
+<%- include('./partials/header.ejs') %>
+<link rel="stylesheet" href="/public/css/chat.css" />
+
+<%- include("./partials/nav.ejs") %>
+<div class="chat-container">
+  <div class="chat-header">
+    <h2>Chat Room</h2>
+    <p>Welcome, <%= user.username %></p>
+  </div>
+  
+  <div class="chat-messages" id="chat-messages">
+    <!-- Messages will appear here -->
+  </div>
+  
+  <div class="chat-form-container">
+    <form id="chat-form">
+      <input
+        id="msg"
+        type="text"
+        placeholder="Enter Message"
+        required
+        autocomplete="off"
+      />
+      <button class="btn">Send</button>
+    </form>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/public/js/chat.js"></script>
+
+<%- include('./partials/footer.ejs') %>

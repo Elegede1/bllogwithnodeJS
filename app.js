@@ -6,13 +6,62 @@ const session = require('express-session');
 const passport = require('passport');
 const flash = require('connect-flash');
 const path = require('path');
+const http = require('http');
+const socketio = require('socket.io');
 
 
 // express app
 const app = express();
+const server = http.createServer(app);
+const io = socketio(server);
 
 // Passport config
 require('./config/passport')(passport); // import the passport config. This will be used to configure passport for authentication.
+
+
+// Add the chat routes
+app.use('/chat', require('./routes/chatRoutes'));
+
+// Set up Socket.io (add this before the mongoose.connect)
+io.on('connection', socket => {
+  console.log('New WebSocket connection');
+  
+  // Welcome current user
+  socket.emit('message', {
+    username: 'ChatBot',
+    text: 'Welcome to the chat!',
+    time: new Date().toLocaleTimeString()
+  });
+  
+  // Broadcast when a user connects
+  socket.broadcast.emit('message', {
+    username: 'ChatBot',
+    text: 'A user has joined the chat',
+    time: new Date().toLocaleTimeString()
+  });
+  
+  // Listen for chatMessage
+  socket.on('chatMessage', msg => {
+    const username = socket.request.session?.passport?.user || 'Anonymous';
+    
+    io.emit('message', {
+      username: username,
+      text: msg,
+      time: new Date().toLocaleTimeString()
+    });
+  });
+  
+  // Runs when client disconnects
+  socket.on('disconnect', () => {
+    io.emit('message', {
+      username: 'ChatBot',
+      text: 'A user has left the chat',
+      time: new Date().toLocaleTimeString()
+    });
+  });
+});
+
+
 
 // connect to mongodb
 const dbURI = 'mongodb+srv://elegedeblog:XahAv01JiyrGKdOL@plentytinz.thbcvqi.mongodb.net/?retryWrites=true&w=majority&appName=plentytinz'
@@ -138,6 +187,8 @@ app.get('/setup-admin', async (req, res) => { // create an admin user route. Thi
 
 // blog routes
 app.use('/blogs', blogRoutes); // use the blog routes. This will mount the blogRoutes module to the /blogs path. This means that all routes defined in the blogRoutes module will be prefixed with /blogs.
+app.use('/chat', require('./routes/chatRoutes')); // Add this line
+
 
 
 // 404 page
