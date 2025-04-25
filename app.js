@@ -8,6 +8,8 @@ const flash = require('connect-flash');
 const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
+const methodOverride = require('method-override');
+
 
 
 // express app
@@ -93,6 +95,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public/css/')); // serve static files from the public directory. This is where we will put our CSS and JS files.
 app.use(express.urlencoded({ extended: true })); // parse URL-encoded bodies (as sent by HTML forms). This will allow us to access the form data in the request body.
 app.use(morgan('dev')); // use morgan middleware to log requests to the console. The 'dev' option will log the request method, url, status code, and response time.
+
+app.use(methodOverride('_method'));
 
 
 // Express session
@@ -188,6 +192,8 @@ app.get('/setup-admin', async (req, res) => { // create an admin user route. Thi
 // blog routes
 app.use('/blogs', blogRoutes); // use the blog routes. This will mount the blogRoutes module to the /blogs path. This means that all routes defined in the blogRoutes module will be prefixed with /blogs.
 app.use('/chat', require('./routes/chatRoutes')); // Add this line
+app.use('/comments', require('./routes/commentRoutes'));
+
 
 
 

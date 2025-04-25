@@ -363,3 +363,60 @@ form button[type="submit"].btn {
 }
 
 
+/* Comment Section Styles */
+.comments-section {
+  margin-top: 40px;
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+.comment-form {
+  margin-bottom: 30px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.comments-list {
+  margin-top: 20px;
+}
+
+.comment {
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-left: 3px solid #4a69bd;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.9em;
+}
+
+.comment-date {
+  color: #777;
+}
+
+.delete-comment {
+  display: inline;
+}
+
+.btn-small {
+  background: #ff6b6b;
+  color: white;
+  border: 0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+}
