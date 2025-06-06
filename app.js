@@ -15,14 +15,35 @@ const methodOverride = require('method-override');
 // express app
 const app = express();
 const server = http.createServer(app);
-const io = socketio(server);
+
+// Configure session middleware BEFORE Socket.io
+const sessionMiddleware = session({
+    secret: 'your_secret_key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }
+});
+
+// Use session middleware
+app.use(sessionMiddleware);
 
 // Passport config
-require('./config/passport')(passport); // import the passport config. This will be used to configure passport for authentication.
+require('./config/passport')(passport);
 
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Add the chat routes
-app.use('/chat', require('./routes/chatRoutes'));
+// Connect flash
+app.use(flash());
+
+// Configure Socket.io with session support
+const io = socketio(server);
+
+// Share session with Socket.io
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
 
 // Set up Socket.io (add this before the mongoose.connect)
 io.on('connection', socket => {
@@ -64,7 +85,6 @@ io.on('connection', socket => {
 });
 
 
-
 // connect to mongodb
 const dbURI = 'mongodb+srv://elegedeblog:XahAv01JiyrGKdOL@plentytinz.thbcvqi.mongodb.net/?retryWrites=true&w=majority&appName=plentytinz'
 // mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -81,66 +101,42 @@ app.locals.currentYear = new Date().getFullYear(); // set a local variable that 
 // register view engine
 app.set('view engine', 'ejs');
 app.set('views', 'views'); // set the views directory. This is where we will put our EJS files. the syntax is app.set('views', 'directory_name')
-app.use(express.static('public')); // serve static files from the public directory. This is where we will put our CSS and JS files.
-
-
-// register view engine
-app.set('view engine', 'ejs');
 
 // Body parser
 app.use(express.urlencoded({ extended: false }));
 
-
 // middleware & static files
 app.use(express.static('public/css/')); // serve static files from the public directory. This is where we will put our CSS and JS files.
-app.use(express.urlencoded({ extended: true })); // parse URL-encoded bodies (as sent by HTML forms). This will allow us to access the form data in the request body.
 app.use(morgan('dev')); // use morgan middleware to log requests to the console. The 'dev' option will log the request method, url, status code, and response time.
-
 app.use(methodOverride('_method'));
 
-
-// Express session
-app.use(session({
-    secret: 'your_secret_key',
-    resave: true,
-    saveUninitialized: true
-  }));
   
-  // Passport middleware
-  app.use(passport.initialize());
-  app.use(passport.session());
+// Global variables
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  res.locals.user = req.user || null;
+  next();
+});
   
-  // Connect flash
-  app.use(flash());
-  
-  // Global variables
-  app.use((req, res, next) => {
-    res.locals.success_msg = req.flash('success_msg');
-    res.locals.error_msg = req.flash('error_msg');
-    res.locals.error = req.flash('error');
-    res.locals.user = req.user || null;
-    next();
-  });
-  
-  // Static files
-  app.use('/public', express.static(path.join(__dirname, 'public'))); // serve static files from the assets directory. This is where we will put our CSS and JS files.
-  app.use('/assets', express.static(path.join(__dirname, 'assets')));
+// Static files
+app.use('/public', express.static(path.join(__dirname, 'public'))); // serve static files from the assets directory. This is where we will put our CSS and JS files.
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
   
-  // Routes
-  app.use('/auth', require('./routes/auth'));
-  app.use('/profile', require('./routes/profile'));
+// Routes
+app.use('/auth', require('./routes/auth'));
+app.use('/profile', require('./routes/profile'));
+app.use('/chat', require('./routes/chatRoutes')); // This includes the chat routes
+
 
 
 app.get('/about', (req, res) => {
-    // res.send('<p>About Page</p>');
-    // res.sendFile('./views/about.html', { root: __dirname });
     res.render('about', { title: 'About' });
 });
 
 app.get('/contact', (req, res) => {
-    // res.send('<p>Contact Page</p>');
-    // res.sendFile('./views/contact.html', { root: __dirname });
     res.render('contact', { title: 'Contact' });
 });
 
@@ -193,9 +189,6 @@ app.get('/setup-admin', async (req, res) => { // create an admin user route. Thi
 app.use('/blogs', blogRoutes); // use the blog routes. This will mount the blogRoutes module to the /blogs path. This means that all routes defined in the blogRoutes module will be prefixed with /blogs.
 app.use('/chat', require('./routes/chatRoutes')); // Add this line
 app.use('/comments', require('./routes/commentRoutes'));
-
-
-
 
 // 404 page
 app.use((req, res) => { // middleware function to handle 404 errors. This function will be called if no other route matches the request.
