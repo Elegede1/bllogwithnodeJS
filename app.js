@@ -1,3 +1,6 @@
+require('dotenv').config(); // Load environment variables from .env file
+
+
 const express = require('express')
 const morgan = require('morgan');
 const mongoose = require('mongoose');
@@ -9,7 +12,6 @@ const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
 const methodOverride = require('method-override');
-
 
 
 // express app
@@ -86,7 +88,13 @@ io.on('connection', socket => {
 
 
 // connect to mongodb
-const dbURI = 'mongodb+srv://elegedeblog:XahAv01JiyrGKdOL@plentytinz.thbcvqi.mongodb.net/?retryWrites=true&w=majority&appName=plentytinz'
+const dbURI = process.env.MONGODB_URI;
+
+if (!dbURI) {
+  console.error('MONGODB_URI is not defined in environment variables');
+  process.exit(1);
+}
+
 // mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then((result) => app.listen(3000, () => {
