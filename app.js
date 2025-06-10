@@ -12,6 +12,11 @@ const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
 const methodOverride = require('method-override');
+const nodemailer = require('nodemailer');
+const contactRoutes = require('./routes/contactRoutes');
+
+
+
 
 
 // express app
@@ -137,7 +142,10 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/auth', require('./routes/auth'));
 app.use('/profile', require('./routes/profile'));
 app.use('/chat', require('./routes/chatRoutes')); // This includes the chat routes
-
+// blog routes
+app.use('/blogs', blogRoutes); // use the blog routes. This will mount the blogRoutes module to the /blogs path. This means that all routes defined in the blogRoutes module will be prefixed with /blogs.
+app.use('/comments', require('./routes/commentRoutes'));
+app.use('/contact', contactRoutes); // Use the contact routes for handling contact form submissions
 
 
 app.get('/about', (req, res) => {
@@ -193,10 +201,7 @@ app.get('/setup-admin', async (req, res) => { // create an admin user route. Thi
     res.render('admin-dashboard');
   });
 
-// blog routes
-app.use('/blogs', blogRoutes); // use the blog routes. This will mount the blogRoutes module to the /blogs path. This means that all routes defined in the blogRoutes module will be prefixed with /blogs.
-app.use('/chat', require('./routes/chatRoutes')); // Add this line
-app.use('/comments', require('./routes/commentRoutes'));
+
 
 // 404 page
 app.use((req, res) => { // middleware function to handle 404 errors. This function will be called if no other route matches the request.
