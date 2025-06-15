@@ -136,6 +136,15 @@ router.post('/register', upload.single('profilePicture'), async (req, res) => {
       req.flash('success_msg', 'You are logged out');
       res.redirect('/auth/login');
     });
+
+
+
+    // res.render('search-users', { // Renders views/search-users.ejs
+    //   title: query ? `Search Results for "${query}"` : 'Search Users',
+    //   users: usersFound, // Pass the array of found users
+    //   searchTerm: query || '',
+    //   user: req.user // Pass the logged-in user object (useful for header/nav partials)
+    // });
   });
   
   module.exports = router;

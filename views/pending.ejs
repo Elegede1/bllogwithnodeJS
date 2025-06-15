@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+  <h1>Friend Requests</h1>
+  
+  <% if (requests.length === 0) { %>
+    <p>You don't have any pending friend requests.</p>
+  <% } else { %>
+    <div class="list-group">
+      <% requests.forEach(request => { %>
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <% if (request.user.profile && request.user.profile.avatar) { %>
+              <img src="<%= request.user.profile.avatar %>" class="rounded-circle mr-3" alt="<%= request.user.username %>'s avatar" style="width: 50px; height: 50px;">
+            <% } else { %>
+              <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center mr-3" style="width: 50px; height: 50px;">
+                <h5><%= request.user.username.charAt(0).toUpperCase() %></h5>
+              </div>
+            <% } %>
+            <div>
+              <h5 class="mb-1">
+                <%= request.user.profile && request.user.profile.name ? request.user.profile.name : request.user.username %>
+              </h5>
+              <small>@<%= request.user.username %></small>
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-success accept-request" data-request-id="<%= request._id %>">Accept</button>
+            <button class="btn btn-danger reject-request" data-request-id="<%= request._id %>">Reject</button>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+  
+  <div class="mt-4">
+    <a href="/friends" class="btn btn-outline-primary">Back to Friends</a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle accept request buttons
+    document.querySelectorAll('.accept-request').forEach(button => {
+      button.addEventListener('click', async function() {
+        const requestId = this.getAttribute('data-request-id');
+        
+        try {
+          const response = await fetch(`/friends/request/${requestId}/accept`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            // Reload the page to update the requests list
+            window.location.reload();
+          } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to accept request');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('An error occurred');
+        }
+      });
+    });
+    
+    // Handle reject request buttons
+    document.querySelectorAll('.reject-request').forEach(button => {
+      button.addEventListener('click', async function() {
+        const requestId = this.getAttribute('data-request-id');
+        
+        try {
+          const response = await fetch(`/friends/request/${requestId}/reject`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            // Reload the page to update the requests list
+            window.location.reload();
+          } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to reject request');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('An error occurred');
+        }
+      });
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

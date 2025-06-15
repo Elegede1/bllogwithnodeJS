@@ -12,9 +12,11 @@ const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
 const methodOverride = require('method-override');
-const nodemailer = require('nodemailer');
 const contactRoutes = require('./routes/contactRoutes');
-
+const Message = require('./models/Message'); // Add this
+const GroupChat = require('./models/GroupChat'); // Add this
+const userRoutes = require('./routes/userRoutes'); // Import user routes for search and friend management
+const friendRoutes = require('./routes/friendRoutes');
 
 
 
@@ -47,47 +49,64 @@ app.use(flash());
 // Configure Socket.io with session support
 const io = socketio(server);
 
-// Share session with Socket.io
-io.use((socket, next) => {
-  sessionMiddleware(socket.request, {}, next);
-});
+// To store mapping of userId to socket.id
+const userSockets = {};
 
-// Set up Socket.io (add this before the mongoose.connect)
-io.on('connection', socket => {
+io.on('connection', (socket) => {
   console.log('New WebSocket connection');
-  
-  // Welcome current user
-  socket.emit('message', {
-    username: 'ChatBot',
-    text: 'Welcome to the chat!',
-    time: new Date().toLocaleTimeString()
+  const userId = socket.handshake.query.userId;
+  const userName = socket.handshake.query.userName;
+
+  if (userId) {
+    console.log(`User ${userName} (${userId}) connected with socket ${socket.id}`);
+    userSockets[userId] = socket.id; // Store the mapping
+  }
+
+  // Listen for chat messages (can be public or adapted)
+  socket.on('chatMessage', (msg) => {
+    io.emit('chatMessage', msg); // Broadcasts to everyone
+    // For public messages or general room messages
+    // For 1-on-1, we'll use 'private_message'
+    console.log('Public message received:', msg);
+    // Example: io.to('some-room').emit('chatMessage', { user: userName, text: msg });
   });
-  
-  // Broadcast when a user connects
-  socket.broadcast.emit('message', {
-    username: 'ChatBot',
-    text: 'A user has joined the chat',
-    time: new Date().toLocaleTimeString()
+
+  // Listen for a private message
+  socket.on('private_message', (data) => {
+    // data should contain { recipientId, message }
+    const recipientSocketId = userSockets[data.recipientId];
+    const senderId = userId; // The user ID of the person sending the message
+
+    if (recipientSocketId) {
+      // Send to recipient
+      io.to(recipientSocketId).emit('private_message', {
+        senderId: senderId,
+        senderName: userName,
+        message: data.message,
+        timestamp: new Date()
+      });
+      // Send back to sender (for their own chat window with recipient)
+      socket.emit('private_message', {
+        senderId: senderId,
+        recipientId: data.recipientId, // To know which chat window this belongs to
+        senderName: userName,
+        message: data.message,
+        timestamp: new Date()
+      });
+      console.log(`Message from ${userName} (${senderId}) to ${data.recipientId}: ${data.message}`);
+    } else {
+      // Handle user not found/offline
+      socket.emit('user_not_found', { recipientId: data.recipientId });
+      console.log(`User ${data.recipientId} not found or offline.`);
+    }
   });
-  
-  // Listen for chatMessage
-  socket.on('chatMessage', msg => {
-    const username = socket.request.session?.passport?.user || 'Anonymous';
-    
-    io.emit('message', {
-      username: username,
-      text: msg,
-      time: new Date().toLocaleTimeString()
-    });
-  });
-  
-  // Runs when client disconnects
+
   socket.on('disconnect', () => {
-    io.emit('message', {
-      username: 'ChatBot',
-      text: 'A user has left the chat',
-      time: new Date().toLocaleTimeString()
-    });
+    console.log('User disconnected');
+    console.log(`User ${userName} (${userId}) disconnected`);
+    if (userId) {
+      delete userSockets[userId]; // Clean up mapping
+    }
   });
 });
 
@@ -146,7 +165,8 @@ app.use('/chat', require('./routes/chatRoutes')); // This includes the chat rout
 app.use('/blogs', blogRoutes); // use the blog routes. This will mount the blogRoutes module to the /blogs path. This means that all routes defined in the blogRoutes module will be prefixed with /blogs.
 app.use('/comments', require('./routes/commentRoutes'));
 app.use('/contact', contactRoutes); // Use the contact routes for handling contact form submissions
-
+app.use('/users', userRoutes); // Add this for user search and friend management
+app.use('/friends', friendRoutes);
 
 app.get('/about', (req, res) => {
     res.render('about', { title: 'About' });
@@ -165,7 +185,7 @@ app.get('/', (req, res) => {
 // Create admin user script
 app.get('/setup-admin', async (req, res) => { // create an admin user route. This will be used to create an admin user for the application.
     try {
-      const User = require('./models/User');
+      const User = require('./models/users'); // Import the User model here to avoid circular dependency issues
       const adminExists = await User.findOne({ username: 'admin' });
       
       if (adminExists) {

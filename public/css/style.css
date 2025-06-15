@@ -551,3 +551,134 @@ form button[type="submit"].btn {
     padding: 1.5rem;
   }
 }
+
+
+
+
+/* for friends page */
+/* General container styling (you might already have this) */
+.container {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* Friend card styling */
+.card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card-img-top {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  object-fit: cover; /* Ensures the image covers the area without distortion */
+  height: 200px; /* Or your preferred height */
+}
+
+.card-img-top.bg-secondary { /* For the placeholder avatar */
+  font-size: 3rem; /* Make the initial larger */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-body {
+  padding: 1.25rem;
+  align-items: center; /* Centers flex items (children of card-body) horizontally */
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  margin-right: 0;
+}
+
+.card-text {
+  color: #6c757d; /* Bootstrap's secondary text color */
+  margin-bottom: 1rem;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+.btn-outline-primary {
+  color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-outline-primary:hover {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+
+
+
+/* Friend Request List Styling */
+.col-md-4 .list-group-item {
+  text-align: center; /* Center content within each request item */
+}
+
+.col-md-4 .list-group-item div:first-child { /* The div holding username and date */
+  margin-bottom: 0.5rem; /* Add some space before buttons */
+}
+
+.col-md-4 .list-group-item .mt-2 form {
+  margin: 0 3px; /* Add a little space around accept/reject buttons */
+}
+
+
+
+
+/* Spacing for buttons in card footer */
+.card-body .d-flex.justify-content-between .btn {
+  flex-grow: 1; /* Make buttons take equal space if needed */
+  margin: 0 5px; /* Add some horizontal margin */
+}
+.card-body .d-flex.justify-content-between .btn:first-child {
+  margin-left: 0;
+}
+.card-body .d-flex.justify-content-between .btn:last-child {
+  margin-right: 0;
+}
+
+/* Message for no friends */
+.container > p { /* Target the 'no friends yet' paragraph */
+  font-size: 1.1rem;
+  color: #555;
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+/* Styling for the "View Friend Requests" button container */
+.container .mt-4 { /* The div holding the friend requests button */
+  text-align: center; /* Center the button if it's the only element */
+  padding-top: 20px;
+}

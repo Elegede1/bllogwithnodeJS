@@ -1,0 +1,60 @@
+<%- include('./partials/head.ejs', { title: 'Search Users' }) %>
+<link rel="stylesheet" href="/public/css/chat.css" />
+<link rel="stylesheet" href="/public/css/style.css" />
+
+<body>
+    <%- include('partials/nav') %>
+
+    <div class="container mt-5">
+        <h2><%= title %></h2>
+        <%- include('partials/messages') %>
+
+        <form action="/users/search" method="POST" class="mb-4">
+            <div class="form-row">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="searchTerm" placeholder="Enter name or email" value="<%= typeof searchTerm !== 'undefined' ? searchTerm : '' %>" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary btn-block">Search</button>
+                </div>
+            </div>
+        </form>
+
+        <% if (locals.usersFound) { %>
+            <% if (usersFound.length > 0) { %>
+                <h5>Search Results:</h5>
+                <ul class="list-group">
+                    <% usersFound.forEach(function(foundUser) { %>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong><%= foundUser.name || foundUser.email %></strong>
+                                <% if (foundUser.profile && foundUser.profile.name && foundUser.profile.name !== foundUser.name) { %>
+                                    (<%= foundUser.profile.name %>)
+                                <% } %>
+                                <br>
+                                <small class="text-muted"><%= foundUser.email %></small>
+                            </div>
+                            <!-- Check if already a friend -->
+                            <% const isFriend = user.friends && user.friends.some(friendId => friendId.equals(foundUser._id)); %>
+                            <% if (isFriend) { %>
+                                <span class="badge badge-success">Friend</span>
+                            <% } else { %>
+                                <form action="/users/add-friend/<%= foundUser._id %>" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-info">Add Friend</button>
+                                </form>
+                            <% } %>
+                        </li>
+                    <% }); %>
+                </ul>
+            <% } else if (searchTerm) { %>
+                <p>No users found matching your search for "<%= searchTerm %>".</p>
+            <% } %>
+        <% } %>
+        <hr>
+        <a href="/chat" class="btn btn-secondary">Back to Chat</a>
+    </div>
+
+    <%- include('partials/footer') %>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>

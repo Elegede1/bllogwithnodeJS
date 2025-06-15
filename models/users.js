@@ -33,8 +33,12 @@ const UserSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
-});
+  },
+  friends: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+    }]
+  }, { timestamps: true });
 
 // Hash password before saving
 UserSchema.pre('save', async function(next) {

@@ -1,0 +1,75 @@
+<%- include('partials/head', { title: 'My Friends' }) %>
+<link rel="stylesheet" href="/public/css/style.css" />
+
+<body>
+<%- include('partials/nav') %>
+<div class="container">
+  
+  <div class="row">
+    <div class="col-md-8">
+      <h1 class="mt-3">My Friends</h1>
+      
+      <% if (friends.length === 0) { %>
+        <p>You don't have any friends yet. Start connecting with other users!</p>
+      <% } else { %>
+        <div class="row">
+          <% friends.forEach(friend => { %>
+            <div class="col-lg-6 col-md-12 mb-4"> {/* Adjusted for better fit in 2/3 column */}
+              <div class="card h-100">
+                <% if (friend.profile && friend.profile.avatar) { %>
+                  <img src="<%= friend.profile.avatar %>" class="card-img-top" alt="<%= friend.username %>'s avatar" style="height: 200px; object-fit: cover;">
+                <% } else { %>
+                  <div class="card-img-top bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 200px;">
+                    <h2><%= friend.username.charAt(0).toUpperCase() %></h2>
+                  </div>
+                <% } %>
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">
+                    <%= friend.profile && friend.profile.name ? friend.profile.name : friend.username %>
+                  </h5>
+                  <p class="card-text text-muted">@<%= friend.username %></p>
+                  <div class="mt-auto d-flex justify-content-between">
+                    <a href="/users/<%= friend._id %>" class="btn btn-sm btn-primary">View Profile</a>
+                    <button class="btn btn-sm btn-danger remove-friend" data-friend-id="<%= friend._id %>">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="col-md-4">
+      <h2 class="mt-3">Friend Requests</h2>
+      <% if (typeof friendRequests !== 'undefined' && friendRequests.length > 0) { %>
+        <ul class="list-group">
+          <% friendRequests.forEach(request => { %>
+            <li class="list-group-item">
+              <div>
+                <strong><a href="/users/<%= request.sender._id %>"><%= request.sender.username %></a></strong>
+                <small class="text-muted d-block"><%= new Date(request.createdAt).toLocaleDateString() %></small>
+              </div>
+              <div class="mt-2">
+                <form action="/friends/accept/<%= request._id %>" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-sm btn-success mr-1">Accept</button>
+                </form>
+                <form action="/friends/reject/<%= request._id %>" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-sm btn-warning">Reject</button>
+                </form>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+      <% } else { %>
+        <p>No pending friend requests.</p>
+      <% } %>
+      
+      <div class="mt-4">
+        <a href="/users/search" class="btn btn-outline-primary btn-block">Search Users</a>
+      </div>
+    </div>
+
+   </div>
+ </div>
+ 

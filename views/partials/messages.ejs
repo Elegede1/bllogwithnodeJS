@@ -1,0 +1,43 @@
+<% if (locals.success_msg && success_msg.length > 0) { %>
+    <% success_msg.forEach(function(msg) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%= msg %>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    <% }); %>
+<% } %>
+
+<% if (locals.error_msg && error_msg.length > 0) { %>
+    <% error_msg.forEach(function(msg) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%= msg %>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    <% }); %>
+<% } %>
+
+<% if (locals.error && error.length > 0) { %> <!-- For general errors, often from passport -->
+    <% error.forEach(function(msg) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%= msg %>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    <% }); %>
+<% } %>
+
+<% if (locals.info_msg && info_msg.length > 0) { %>
+    <% info_msg.forEach(function(msg) { %>
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <%= msg %>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    <% }); %>
+<% } %>
