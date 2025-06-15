@@ -1,0 +1,46 @@
+<%- include('./partials/head.ejs', { title: viewedUser.profile.name || 'Profile' }) %>
+<link rel="stylesheet" href="/public/css/style.css" />
+
+<body>
+    <%- include('partials/nav') %>
+
+    <div class="container mt-5">
+        <h2><%= viewedUser.profile.name || viewedUser.username %></h2>
+        <%- include('partials/messages') %>
+
+        <div>
+            <% if (viewedUser.profile && viewedUser.profile.profilePicture) { %>
+                <img src="<%= viewedUser.profile.profilePicture %>" alt="<%= viewedUser.username %>'s profile picture" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
+            <% } else { %>
+                <div style="width: 150px; height: 150px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                    <%= viewedUser.username.charAt(0).toUpperCase() %>
+                </div>
+            <% } %>
+            <p><strong>Username:</strong> <%= viewedUser.username %></p>
+            <p><strong>Email:</strong> <%= viewedUser.email %></p>
+            <% if (viewedUser.profile && viewedUser.profile.bio) { %>
+                <p><strong>Bio:</strong> <%= viewedUser.profile.bio %></p>
+            <% } %>
+
+            <!-- Add friend/unfriend button if not viewing own profile -->
+            <% if (user._id.toString() !== viewedUser._id.toString()) { %>
+                <% const isFriend = user.friends && user.friends.some(friendId => friendId.equals(viewedUser._id)); %>
+                <% if (isFriend) { %>
+                    <form action="/users/remove-friend/<%= viewedUser._id %>" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Remove Friend</button>
+                    </form>
+                <% } else { %>
+                    <form action="/users/add-friend/<%= viewedUser._id %>" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-info">Add Friend</button>
+                    </form>
+                <% } %>
+            <% } else { %>
+                <a href="/auth/profile/edit" class="btn btn-secondary">Edit My Profile</a>
+            <% } %>
+        </div>
+        <hr>
+        <a href="/users/friends" class="btn btn-secondary">Back to My Friends</a>
+    </div>
+
+    <%- include('partials/footer') %>
+</body>

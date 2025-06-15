@@ -156,4 +156,29 @@ router.get('/add-friends', ensureAuthenticated, async (req, res) => {
   }
 });
 
+
+// View user profile page
+router.get('/:userId', ensureAuthenticated, async (req, res) => {
+  try {
+    const viewedUser = await User.findById(req.params.userId)
+      .populate('friends', 'username profile.name profile.profilePicture') // Optionally populate friends of the viewed user
+      .lean();
+
+    if (!viewedUser) {
+      req.flash('error_msg', 'User not found.');
+      return res.redirect('/users/friends'); // Or some other appropriate page
+    }
+
+    res.render('user-profile', { // Assumes you have a 'views/profile.ejs'
+      title: `${viewedUser.profile.name || viewedUser.username}'s Profile`,
+      viewedUser: viewedUser,
+      user: req.user // Logged-in user
+    });
+  } catch (error) {
+    console.error('Error viewing user profile:', error);
+    req.flash('error_msg', 'Could not load user profile.');
+    res.redirect('/dashboard'); // Or an appropriate fallback
+  }
+});
+
 module.exports = router;

@@ -14,7 +14,7 @@
       <% } else { %>
         <div class="row">
           <% friends.forEach(friend => { %>
-            <div class="col-lg-6 col-md-12 mb-4"> {/* Adjusted for better fit in 2/3 column */}
+            <div class="col-lg-6 col-md-12 mb-4">
               <div class="card h-100">
                 <% if (friend.profile && friend.profile.avatar) { %>
                   <img src="<%= friend.profile.avatar %>" class="card-img-top" alt="<%= friend.username %>'s avatar" style="height: 200px; object-fit: cover;">
