@@ -49,47 +49,52 @@ router.post('/search', ensureAuthenticated, async (req, res) => {
 });
 
 
-// Add friend
-router.post('/add-friend/:userId', ensureAuthenticated, async (req, res) => {
+// Send Friend Request
+router.post('/send-request/:recipientId', ensureAuthenticated, async (req, res) => {
   try {
-    const friendId = req.params.userId;
+    const recipientId = req.params.recipientId;
     const currentUserId = req.user._id;
 
     // Check if trying to add themselves
-    if (friendId === currentUserId.toString()) {
+    if (recipientId === currentUserId.toString()) {
       req.flash('error_msg', 'You cannot add yourself as a friend');
-      return res.redirect('/users/friends');
+      return res.redirect('back');
     }
 
-    // Check if friend exists
-    const friend = await User.findById(friendId);
-    if (!friend) {
+    const recipient = await User.findById(recipientId);
+    if (!recipient) {
       req.flash('error_msg', 'User not found');
-      return res.redirect('/users/friends');
+      return res.redirect('back');
     }
 
     // Check if already friends
-    if (req.user.friends.includes(friendId)) {
+    if (req.user.friends.includes(recipientId)) {
       req.flash('error_msg', 'User is already in your friend list');
-      return res.redirect('/users/friends');
+      return res.redirect('back');
     }
 
-    // Add friend to current user's friend list
+    // Check if a request is already pending (either way)
+    if (req.user.pendingRequestsSent.includes(recipientId) || req.user.pendingRequestsReceived.includes(recipientId)) {
+      req.flash('info_msg', 'A friend request is already pending with this user.');
+      return res.redirect('back');
+    }
+
+    // Add to sender's pendingRequestsSent
     await User.findByIdAndUpdate(currentUserId, {
-      $push: { friends: friendId }
+      $addToSet: { pendingRequestsSent: recipientId } // Use $addToSet to avoid duplicates
     });
 
-    // Add current user to friend's friend list (mutual friendship)
-    await User.findByIdAndUpdate(friendId, {
-      $push: { friends: currentUserId }
+    // Add to recipient's pendingRequestsReceived
+    await User.findByIdAndUpdate(recipientId, {
+      $addToSet: { pendingRequestsReceived: currentUserId } // Use $addToSet
     });
 
-    req.flash('success_msg', `${friend.profile.name || friend.username} has been added to your friends`);
-    res.redirect('/users/friends');
+    req.flash('success_msg', `Friend request sent to ${recipient.profile.name || recipient.username}.`);
+    res.redirect('back'); // Redirect back to the page where the request was sent
   } catch (error) {
-    console.error('Add friend error:', error);
-    req.flash('error_msg', 'Failed to add friend');
-    res.redirect('/users/friends');
+    console.error('Send friend request error:', error);
+    req.flash('error_msg', 'Failed to send friend request.');
+    res.redirect('back');
   }
 });
 
@@ -118,29 +123,6 @@ router.post('/remove-friend/:userId', ensureAuthenticated, async (req, res) => {
   }
 });
 
-// Friends list page
-router.get('/friends', ensureAuthenticated, async (req, res) => {
-  try {
-    // Get current user with populated friends
-    const userWithFriends = await User.findById(req.user._id)
-      .populate('friends', 'username profile.name profile.profilePicture email createdAt')
-      .lean();
-
-    // Ensure friends is always an array, even if userWithFriends or userWithFriends.friends is null/undefined
-    const friends = (userWithFriends && userWithFriends.friends) ? userWithFriends.friends : [];
-
-    res.render('friends', {
-      title: 'My Friends',
-      user: req.user,
-      friends: friends,
-      friendCount: friends.length
-    });
-  } catch (error) {
-    console.error('Friends list error:', error);
-    req.flash('error_msg', 'Could not load friends list');
-    res.redirect('/dashboard');
-  }
-});
 
 // Add friends page (search and add new friends)
 router.get('/add-friends', ensureAuthenticated, async (req, res) => {
@@ -155,6 +137,102 @@ router.get('/add-friends', ensureAuthenticated, async (req, res) => {
     res.redirect('/users/friends');
   }
 });
+
+// Accept Friend Request
+router.post('/accept-request/:senderId', ensureAuthenticated, async (req, res) => {
+  try {
+    const senderId = req.params.senderId;
+    const currentUserId = req.user._id;
+
+    // Add to each other's friends list
+    await User.findByIdAndUpdate(currentUserId, {
+      $addToSet: { friends: senderId },
+      $pull: { pendingRequestsReceived: senderId, pendingRequestsSent: senderId } // Remove from pending
+    });
+    await User.findByIdAndUpdate(senderId, {
+      $addToSet: { friends: currentUserId },
+      $pull: { pendingRequestsSent: currentUserId, pendingRequestsReceived: currentUserId } // Remove from pending
+    });
+
+    req.flash('success_msg', 'Friend request accepted.');
+    res.redirect('/users/friends');
+  } catch (error) {
+    console.error('Accept request error:', error);
+    req.flash('error_msg', 'Failed to accept friend request.');
+    res.redirect('/users/friends');
+  }
+});
+
+// Reject Friend Request
+router.post('/reject-request/:senderId', ensureAuthenticated, async (req, res) => {
+  try {
+    const senderId = req.params.senderId;
+    const currentUserId = req.user._id;
+
+    // Remove from pending lists
+    await User.findByIdAndUpdate(currentUserId, { $pull: { pendingRequestsReceived: senderId } });
+    await User.findByIdAndUpdate(senderId, { $pull: { pendingRequestsSent: currentUserId } });
+
+    req.flash('info_msg', 'Friend request rejected.');
+    res.redirect('/users/friends');
+  } catch (error) {
+    console.error('Reject request error:', error);
+    req.flash('error_msg', 'Failed to reject friend request.');
+    res.redirect('/users/friends');
+  }
+});
+
+// Cancel Friend Request (that the current user sent)
+router.post('/cancel-request/:recipientId', ensureAuthenticated, async (req, res) => {
+  try {
+    const recipientId = req.params.recipientId;
+    const currentUserId = req.user._id;
+
+    await User.findByIdAndUpdate(currentUserId, { $pull: { pendingRequestsSent: recipientId } });
+    await User.findByIdAndUpdate(recipientId, { $pull: { pendingRequestsReceived: currentUserId } });
+
+    req.flash('info_msg', 'Friend request cancelled.');
+    res.redirect('back');
+  } catch (error) {
+    console.error('Cancel request error:', error);
+    req.flash('error_msg', 'Failed to cancel friend request.');
+    res.redirect('back');
+  }
+});
+
+
+
+// Friends list page
+router.get('/friends', ensureAuthenticated, async (req, res) => {
+  try {
+    // Get current user with populated friends
+    const userWithFriends = await User.findById(req.user._id)
+    const userWithData = await User.findById(req.user._id)
+      .populate('friends', 'username profile.name profile.profilePicture email createdAt _id')
+      .populate({ // Populate received requests with sender's details
+        path: 'pendingRequestsReceived',
+        select: 'username profile.name profile.profilePicture _id createdAt' 
+      })
+      .lean();
+
+    // Ensure friends and friendRequests are always arrays
+    const friends = (userWithData && userWithData.friends) ? userWithData.friends : [];
+    const friendRequests = (userWithData && userWithData.pendingRequestsReceived) ? userWithData.pendingRequestsReceived : [];
+
+    res.render('friends', {
+      title: 'My Friends',
+      user: req.user,
+      friends: friends,
+      friendRequests: friendRequests, // Pass friendRequests to the template
+      friendCount: friends.length
+    });
+  } catch (error) {
+    console.error('Friends list error:', error);
+    req.flash('error_msg', 'Could not load friends list');
+    res.redirect('/dashboard');
+  }
+});
+
 
 
 // View user profile page
@@ -180,5 +258,6 @@ router.get('/:userId', ensureAuthenticated, async (req, res) => {
     res.redirect('/dashboard'); // Or an appropriate fallback
   }
 });
+
 
 module.exports = router;

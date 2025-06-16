@@ -36,11 +36,25 @@
                             </div>
                             <!-- Check if already a friend -->
                             <% const isFriend = user.friends && user.friends.some(friendId => friendId.equals(foundUser._id)); %>
+                            <% const requestSent = user.pendingRequestsSent && user.pendingRequestsSent.some(reqId => reqId.equals(foundUser._id)); %>
+                            <% const requestReceived = user.pendingRequestsReceived && user.pendingRequestsReceived.some(reqId => reqId.equals(foundUser._id)); %>
+
                             <% if (isFriend) { %>
                                 <span class="badge badge-success">Friend</span>
+                            <% } else if (requestSent) { %>
+                                <form action="/users/cancel-request/<%= foundUser._id %>" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-warning">Cancel Request</button>
+                                </form>
+                            <% } else if (requestReceived) { %>
+                                <form action="/users/accept-request/<%= foundUser._id %>" method="POST" style="display: inline; margin-right: 5px;">
+                                    <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                </form>
+                                <form action="/users/reject-request/<%= foundUser._id %>" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                </form>
                             <% } else { %>
-                                <form action="/users/add-friend/<%= foundUser._id %>" method="POST" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-info">Add Friend</button>
+                                <form action="/users/friends/<%= foundUser._id %>" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-info">Send Request</button>
                                 </form>
                             <% } %>
                         </li>

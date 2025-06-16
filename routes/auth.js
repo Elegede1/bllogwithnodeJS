@@ -123,7 +123,7 @@ router.post('/register', upload.single('profilePicture'), async (req, res) => {
   // Login handle
   router.post('/login', (req, res, next) => {
     passport.authenticate('local', {
-      successRedirect: '/profile',
+      successRedirect: '/blogs',
       failureRedirect: '/auth/login',
       failureFlash: true
     })(req, res, next);

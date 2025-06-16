@@ -37,7 +37,17 @@ const UserSchema = new mongoose.Schema({
   friends: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-    }]
+    }],
+
+  pendingRequestsSent: [{ // Add this field for requests the user has sent
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+  }],
+  pendingRequestsReceived: [{ // Add this field for requests the user has received
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+  }]
+
   }, { timestamps: true });
 
 // Hash password before saving

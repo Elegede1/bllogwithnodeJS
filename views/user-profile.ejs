@@ -24,14 +24,28 @@
 
             <!-- Add friend/unfriend button if not viewing own profile -->
             <% if (user._id.toString() !== viewedUser._id.toString()) { %>
-                <% const isFriend = user.friends && user.friends.some(friendId => friendId.equals(viewedUser._id)); %>
+                <% const isFriend = user.friends && user.friends.some(friendId => friendId.toString() === viewedUser._id.toString()); %>
+                <% const requestSent = user.pendingRequestsSent && user.pendingRequestsSent.some(reqId => reqId.toString() === viewedUser._id.toString()); %>
+                <% const requestReceived = user.pendingRequestsReceived && user.pendingRequestsReceived.some(reqId => reqId.toString() === viewedUser._id.toString()); %>
+
                 <% if (isFriend) { %>
                     <form action="/users/remove-friend/<%= viewedUser._id %>" method="POST" style="display: inline;">
                         <button type="submit" class="btn btn-danger">Remove Friend</button>
                     </form>
+                <% } else if (requestSent) { %>
+                    <form action="/users/cancel-request/<%= viewedUser._id %>" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-warning">Cancel Request</button>
+                    </form>
+                <% } else if (requestReceived) { %>
+                    <form action="/users/accept-request/<%= viewedUser._id %>" method="POST" style="display: inline; margin-right: 5px;">
+                        <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                    </form>
+                    <form action="/users/reject-request/<%= viewedUser._id %>" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                    </form>
                 <% } else { %>
-                    <form action="/users/add-friend/<%= viewedUser._id %>" method="POST" style="display: inline;">
-                        <button type="submit" class="btn btn-info">Add Friend</button>
+                    <form action="/users/send-request/<%= viewedUser._id %>" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-info">Send Friend Request</button>
                     </form>
                 <% } %>
             <% } else { %>
