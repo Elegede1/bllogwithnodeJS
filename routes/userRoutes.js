@@ -44,7 +44,7 @@ router.post('/search', ensureAuthenticated, async (req, res) => {
   } catch (error) {
     console.error('Search submission error:', error);
     req.flash('error_msg', 'Search failed. Please try again.');
-    res.redirect('/users/search'); // Redirect back to the search page on error
+    res.redirect('/users/search-users'); // Redirect back to the search page on error
   }
 });
 
@@ -58,25 +58,29 @@ router.post('/send-request/:recipientId', ensureAuthenticated, async (req, res) 
     // Check if trying to add themselves
     if (recipientId === currentUserId.toString()) {
       req.flash('error_msg', 'You cannot add yourself as a friend');
-      return res.redirect('back');
+      // return res.redirect('back');
+      return res.redirect('/users/search');
     }
 
     const recipient = await User.findById(recipientId);
     if (!recipient) {
       req.flash('error_msg', 'User not found');
-      return res.redirect('back');
+      // return res.redirect('back');
+      return res.redirect('/users/search');
     }
 
     // Check if already friends
     if (req.user.friends.includes(recipientId)) {
       req.flash('error_msg', 'User is already in your friend list');
-      return res.redirect('back');
+      // return res.redirect('back');
+      return res.redirect('/users/search');
     }
 
     // Check if a request is already pending (either way)
     if (req.user.pendingRequestsSent.includes(recipientId) || req.user.pendingRequestsReceived.includes(recipientId)) {
       req.flash('info_msg', 'A friend request is already pending with this user.');
-      return res.redirect('back');
+      // return res.redirect('back');
+      return res.redirect('/users/search');
     }
 
     // Add to sender's pendingRequestsSent
@@ -90,11 +94,13 @@ router.post('/send-request/:recipientId', ensureAuthenticated, async (req, res) 
     });
 
     req.flash('success_msg', `Friend request sent to ${recipient.profile.name || recipient.username}.`);
-    res.redirect('back'); // Redirect back to the page where the request was sent
+    // res.redirect('back'); // Redirect back to the page where the request was sent
+    return res.redirect('/users/search');
   } catch (error) {
     console.error('Send friend request error:', error);
     req.flash('error_msg', 'Failed to send friend request.');
     res.redirect('back');
+    return res.redirect('/users/search');
   }
 });
 
@@ -192,11 +198,11 @@ router.post('/cancel-request/:recipientId', ensureAuthenticated, async (req, res
     await User.findByIdAndUpdate(recipientId, { $pull: { pendingRequestsReceived: currentUserId } });
 
     req.flash('info_msg', 'Friend request cancelled.');
-    res.redirect('back');
+    return res.redirect('/users/search');
   } catch (error) {
     console.error('Cancel request error:', error);
     req.flash('error_msg', 'Failed to cancel friend request.');
-    res.redirect('back');
+    return res.redirect('/users/search');
   }
 });
 

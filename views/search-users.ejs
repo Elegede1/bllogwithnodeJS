@@ -53,7 +53,7 @@
                                     <button type="submit" class="btn btn-sm btn-danger">Reject</button>
                                 </form>
                             <% } else { %>
-                                <form action="/users/friends/<%= foundUser._id %>" method="POST" style="display: inline;">
+                                <form action="/users/send-request/<%= foundUser._id %>" method="POST" style="display: inline;">
                                     <button type="submit" class="btn btn-sm btn-info">Send Request</button>
                                 </form>
                             <% } %>

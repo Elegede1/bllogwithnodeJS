@@ -16,8 +16,8 @@
           <% friends.forEach(friend => { %>
             <div class="col-lg-6 col-md-12 mb-4">
               <div class="card h-100">
-                <% if (friend.profile && friend.profile.avatar) { %>
-                  <img src="<%= friend.profile.avatar %>" class="card-img-top" alt="<%= friend.username %>'s avatar" style="height: 200px; object-fit: cover;">
+                <% if (friend.profile && friend.profile.profilePicture) { %>
+                  <img src="<%= friend.profile.profilePicture %>" class="card-img-top" alt="<%= friend.username %>'s profile picture" style="height: 200px; object-fit: cover;">
                 <% } else { %>
                   <div class="card-img-top bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 200px;">
                     <h2><%= friend.username.charAt(0).toUpperCase() %></h2>
@@ -46,7 +46,7 @@
       <h2 class="mt-3">Friend Requests</h2>
       <% if (typeof friendRequests !== 'undefined' && friendRequests.length > 0) { %>
         <ul class="list-group">
-          <% friendRequests.forEach(sender => { %> {/* Changed 'request' to 'sender' to match populated data */}
+          <% friendRequests.forEach(sender => { %> <!--Changed 'request' to 'sender' to match populated data-->
             <li class="list-group-item">
               <div>
                 <%# Assuming sender object has _id, username, and possibly createdAt if you add it to schema/populate %>
